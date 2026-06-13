@@ -1,0 +1,76 @@
+:root {
+  --bg: #050816;
+  --text: #b3bdd6;
+  --text-h: #f7faff;
+  --muted: #93a1c6;
+  --accent-soft: #86d7ff;
+  --font-body: 'Trebuchet MS', 'Segoe UI', sans-serif;
+  --font-heading: Georgia, 'Times New Roman', serif;
+  --font-mono: ui-monospace, SFMono-Regular, Consolas, monospace;
+
+  font: 16px/1.5 var(--font-body);
+  color-scheme: dark;
+  color: var(--text);
+  background:
+    radial-gradient(circle at 15% 15%, rgba(42, 137, 255, 0.26), transparent 28%),
+    radial-gradient(circle at 85% 10%, rgba(116, 208, 255, 0.2), transparent 24%),
+    radial-gradient(circle at 50% 95%, rgba(44, 63, 136, 0.38), transparent 30%),
+    var(--bg);
+  font-synthesis: none;
+  text-rendering: optimizeLegibility;
+  -webkit-font-smoothing: antialiased;
+  -moz-osx-font-smoothing: grayscale;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+html {
+  min-height: 100%;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background:
+    linear-gradient(180deg, rgba(5, 8, 22, 0.36), rgba(5, 8, 22, 0.92)),
+    var(--bg);
+}
+
+body,
+button,
+input {
+  font: inherit;
+}
+
+button,
+input {
+  border: 0;
+}
+
+button:focus-visible,
+input:focus-visible {
+  outline: 2px solid rgba(116, 208, 255, 0.8);
+  outline-offset: 2px;
+}
+
+#root {
+  min-height: 100vh;
+}
+
+h1,
+h2,
+h3 {
+  font-family: var(--font-heading);
+  color: var(--text-h);
+  font-weight: 700;
+}
+
+p {
+  margin: 0;
+}
+
+a {
+  color: inherit;
+}
