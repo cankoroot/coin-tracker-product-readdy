@@ -292,9 +292,11 @@ function App() {
     const chartMin = chartData.length ? Math.min(...chartData.map((point) => point.price)) : 0
     const chartMax = chartData.length ? Math.max(...chartData.map((point) => point.price)) : 0
     const currencySymbol = CURRENCY_OPTIONS.find((option) => option.key === currency)?.symbol ?? '$'
+    document.title = selectedCoin ? `${selectedCoin.name} fiyatı` : 'Cankoroot Piyasa Masası'
 
     return (
         <main className="dashboard-shell">
+
             <section className="hero-panel">
                 <div className="hero-copy">
                     <p className="eyebrow">cankoroot piyasa masası</p>
