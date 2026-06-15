@@ -139,10 +139,14 @@ function formatChartLabel(timestamp: number, range: RangeKey) {
 async function cgFetch<T>(path: string, signal?: AbortSignal): Promise<T> {
     const fetchUrl = `/api/coingecko${path}`
 
-    const response = await fetch(fetchUrl, {
+    let response = await fetch(fetchUrl, {
         headers: createHeaders(),
         signal,
     })
+
+    if (response.status === 404 && fetchUrl.startsWith('/api/coingecko')) {
+        response = await fetch(`${API_BASE_URL}${path}`, { signal })
+    }
 
     if (!response.ok) {
         const errorText = await response.text()
