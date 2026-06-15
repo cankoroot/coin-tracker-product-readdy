@@ -11,9 +11,7 @@ import {
 import './App.css'
 
 const API_KEY = import.meta.env.VITE_COINGECKO_API_KEY as string | undefined
-const API_BASE_URL = API_KEY
-    ? 'https://demo-api.coingecko.com/api/v3'
-    : 'https://api.coingecko.com/api/v3'
+const API_BASE_URL = 'https://api.coingecko.com/api/v3'
 
 type Currency = 'usd' | 'try'
 type RangeKey = '1d' | '7d' | '30d' | '365d'
@@ -82,7 +80,7 @@ function createHeaders(): HeadersInit | undefined {
     if (!API_KEY) return undefined
 
     return {
-        'x-cg-pro-api-key': API_KEY,
+        'x-cg-demo-api-key': API_KEY,
     }
 }
 
