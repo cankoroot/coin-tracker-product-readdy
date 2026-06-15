@@ -12,7 +12,7 @@ import './App.css'
 
 const API_KEY = import.meta.env.VITE_COINGECKO_API_KEY as string | undefined
 const API_BASE_URL = API_KEY
-    ? 'https://api.coingecko.com/api/v3'
+    ? 'https://demo-api.coingecko.com/api/v3'
     : 'https://api.coingecko.com/api/v3'
 
 type Currency = 'usd' | 'try'
