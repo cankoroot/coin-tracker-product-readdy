@@ -158,6 +158,19 @@ function App() {
         [rangeKey],
     )
 
+    const isApiCooldownActive = () => Date.now() - lastManualRequestAtRef.current < API_COOLDOWN_MS
+
+    const markApiRequest = () => {
+        lastManualRequestAtRef.current = Date.now()
+    }
+
+    const blockIfCoolingDown = () => {
+        if (!isApiCooldownActive()) return false
+
+        setError('15 Saniye Bekleyin. API Cooldown devrede')
+        return true
+    }
+
     useEffect(() => {
         const controller = new AbortController()
         const currentSelectedCoin = selectedCoinRef.current
@@ -245,9 +258,30 @@ function App() {
         return () => controller.abort()
     }, [currency, selectedCoin, rangeDays])
 
-    const loadCoin = (coin: SearchResult) => {
+    const selectCoin = (coin: SearchResult) => {
         setSelectedCoin(coin)
         setError('')
+    }
+
+    const requestCoinSelection = (coin: SearchResult) => {
+        if (blockIfCoolingDown()) return
+
+        markApiRequest()
+        selectCoin(coin)
+    }
+
+    const requestCurrencyChange = (nextCurrency: Currency) => {
+        if (blockIfCoolingDown()) return
+
+        markApiRequest()
+        setCurrency(nextCurrency)
+    }
+
+    const requestRangeChange = (nextRangeKey: RangeKey) => {
+        if (blockIfCoolingDown()) return
+
+        markApiRequest()
+        setRangeKey(nextRangeKey)
     }
 
     const handleSearch = async (event: FormEvent<HTMLFormElement>) => {
@@ -256,14 +290,11 @@ function App() {
         const query = searchQuery.trim()
         if (!query) return
 
-        const now = Date.now()
-        const elapsedSinceLastRequest = now - lastManualRequestAtRef.current
-        if (elapsedSinceLastRequest < API_COOLDOWN_MS) {
-            setError('15 Saniye Bekleyin. API Cooldown devrede')
+        if (blockIfCoolingDown()) {
             return
         }
 
-        lastManualRequestAtRef.current = now
+        markApiRequest()
 
         setSearching(true)
         setError('')
@@ -277,7 +308,7 @@ function App() {
             setSearchResults(results)
 
             if (results[0]) {
-                loadCoin(results[0])
+                selectCoin(results[0])
             }
         } catch (requestError) {
             setError(
@@ -317,7 +348,7 @@ function App() {
                                         key={option.key}
                                         type="button"
                                         className={option.key === currency ? 'segment-button active' : 'segment-button'}
-                                        onClick={() => setCurrency(option.key)}
+                                        onClick={() => requestCurrencyChange(option.key)}
                                     >
                                         {option.symbol} {option.label}
                                     </button>
@@ -399,7 +430,7 @@ function App() {
                                 key={option.key}
                                 type="button"
                                 className={option.key === rangeKey ? 'segment-button active' : 'segment-button'}
-                                onClick={() => setRangeKey(option.key)}
+                                onClick={() => requestRangeChange(option.key)}
                             >
                                 {option.label}
                             </button>
@@ -497,7 +528,7 @@ function App() {
                                 type="button"
                                 className="price-card"
                                 onClick={() =>
-                                    loadCoin({
+                                    requestCoinSelection({
                                         id: coin.id,
                                         name: coin.name,
                                         symbol: coin.symbol,
@@ -546,7 +577,7 @@ function App() {
                                     <tr
                                         key={coin.id}
                                         onClick={() =>
-                                            loadCoin({
+                                            requestCoinSelection({
                                                 id: coin.id,
                                                 name: coin.name,
                                                 symbol: coin.symbol,
@@ -594,7 +625,7 @@ function App() {
                             type="button"
                             className="trending-item"
                             onClick={() =>
-                                loadCoin({
+                                requestCoinSelection({
                                     id: item.id,
                                     name: item.name,
                                     symbol: item.symbol,
@@ -620,7 +651,7 @@ function App() {
                         <p className="eyebrow">Arama sonuçları</p>
                         <div className="result-list">
                             {searchResults.map((coin) => (
-                                <button key={coin.id} type="button" onClick={() => loadCoin(coin)}>
+                                <button key={coin.id} type="button" onClick={() => requestCoinSelection(coin)}>
                                     <img src={coin.thumb} alt="" />
                                     <span>
                                         {coin.name} ({coin.symbol.toUpperCase()})
