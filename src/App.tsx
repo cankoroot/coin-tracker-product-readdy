@@ -148,7 +148,6 @@ async function cgFetch<T>(path: string, signal?: AbortSignal): Promise<T> {
         throw new Error(errorText || `Request failed with ${resp.status}`)
     }
 
-    // Production ortamında CORS'u atlamak için önce kendi API proxy'nizi kullan.
     try {
         const proxyResp = await fetch(proxyUrl, {
             headers: createHeaders(),
@@ -162,7 +161,6 @@ async function cgFetch<T>(path: string, signal?: AbortSignal): Promise<T> {
 
         return await parseResponse(proxyResp)
     } catch (proxyError) {
-        // Proxy route yoksa (örn. bazı lokal ortamlar) doğrudan endpoint'e geri düş.
         const directResp = await fetch(directUrl, { signal })
         return parseResponse(directResp)
     }
