@@ -10,7 +10,6 @@ import {
 } from 'recharts'
 import './App.css'
 
-const API_KEY = import.meta.env.VITE_COINGECKO_API_KEY as string | undefined
 const API_BASE_URL = 'https://api.coingecko.com/api/v3'
 const API_COOLDOWN_MS = 15_000
 
@@ -77,18 +76,6 @@ const CURRENCY_OPTIONS: Array<{ key: Currency; label: string; symbol: string }> 
     { key: 'try', label: 'TRY', symbol: '₺' },
 ]
 
-function createHeaders(): HeadersInit | undefined {
-    if (!API_KEY) return undefined
-
-    if (API_BASE_URL.includes('pro-api.coingecko.com')) {
-        return {
-            'x-cg-pro-api-key': API_KEY,
-        }
-    }
-
-    return undefined
-}
-
 function formatCurrency(value: number, currency: Currency) {
     return new Intl.NumberFormat(currency === 'try' ? 'tr-TR' : 'en-US', {
         style: 'currency',
@@ -135,35 +122,16 @@ function formatChartLabel(timestamp: number, range: RangeKey) {
 
 async function cgFetch<T>(path: string, signal?: AbortSignal): Promise<T> {
     const directUrl = `${API_BASE_URL}${path}`
-    const proxyUrl = `/api/coingecko${path}`
+    const resp = await fetch(directUrl, {
+        signal,
+    })
 
-    const parseResponse = async (resp: Response) => {
-        if (resp.ok) return resp.json() as Promise<T>
-
-        if (resp.status === 429) {
-            throw new Error('CoinGecko API limiti dolu. Lütfen biraz bekleyip tekrar deneyin.')
-        }
-
+    if (!resp.ok) {
         const errorText = await resp.text()
         throw new Error(errorText || `Request failed with ${resp.status}`)
     }
 
-    try {
-        const proxyResp = await fetch(proxyUrl, {
-            headers: createHeaders(),
-            signal,
-        })
-
-        if (proxyResp.status === 404) {
-            const directResp = await fetch(directUrl, { signal })
-            return parseResponse(directResp)
-        }
-
-        return await parseResponse(proxyResp)
-    } catch (proxyError) {
-        const directResp = await fetch(directUrl, { signal })
-        return parseResponse(directResp)
-    }
+    return resp.json() as Promise<T>
 }
 
 function App() {
