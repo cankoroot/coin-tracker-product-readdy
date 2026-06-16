@@ -134,45 +134,38 @@ function formatChartLabel(timestamp: number, range: RangeKey) {
 }
 
 async function cgFetch<T>(path: string, signal?: AbortSignal): Promise<T> {
-    const isLongChart = path.includes('/market_chart') && path.includes('days=365')
     const directUrl = `${API_BASE_URL}${path}`
     const proxyUrl = `/api/coingecko${path}`
 
-    if (!isLongChart) {
-        const resp = await fetch(directUrl, { signal })
-        if (!resp.ok) {
-            const errorText = await resp.text()
-            throw new Error(errorText || `Request failed with ${resp.status}`)
+    const parseResponse = async (resp: Response) => {
+        if (resp.ok) return resp.json() as Promise<T>
+
+        if (resp.status === 429) {
+            throw new Error('CoinGecko API limiti dolu. Lütfen biraz bekleyip tekrar deneyin.')
         }
 
-        return resp.json() as Promise<T>
+        const errorText = await resp.text()
+        throw new Error(errorText || `Request failed with ${resp.status}`)
     }
 
+    // Production ortamında CORS'u atlamak için önce kendi API proxy'nizi kullan.
     try {
-        const directResp = await fetch(directUrl, { signal })
-        if (directResp.ok) return directResp.json() as Promise<T>
-    } catch (err) {
-    }
+        const proxyResp = await fetch(proxyUrl, {
+            headers: createHeaders(),
+            signal,
+        })
 
-    const proxyResp = await fetch(proxyUrl, {
-        headers: createHeaders(),
-        signal,
-    })
-
-    if (proxyResp.ok) return proxyResp.json() as Promise<T>
-
-    if (proxyResp.status === 404) {
-        const finalResp = await fetch(directUrl, { signal })
-        if (!finalResp.ok) {
-            const errorText = await finalResp.text()
-            throw new Error(errorText || `Request failed with ${finalResp.status}`)
+        if (proxyResp.status === 404) {
+            const directResp = await fetch(directUrl, { signal })
+            return parseResponse(directResp)
         }
 
-        return finalResp.json() as Promise<T>
+        return await parseResponse(proxyResp)
+    } catch (proxyError) {
+        // Proxy route yoksa (örn. bazı lokal ortamlar) doğrudan endpoint'e geri düş.
+        const directResp = await fetch(directUrl, { signal })
+        return parseResponse(directResp)
     }
-
-    const errorText = await proxyResp.text()
-    throw new Error(errorText || `Request failed with ${proxyResp.status}`)
 }
 
 function App() {
